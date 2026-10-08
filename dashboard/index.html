@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neobank Analytics | Executive BI Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="brand-group">
+      <img src="logo.png" alt="Neobank Logo" class="brand-logo" onerror="this.style.display='none'">
+      <div class="brand-titles">
+        <h1>Neobank Analytics <span class="badge-role">BI Dashboard</span></h1>
+        <p>Neobanco Global | Monitoreo Transaccional, Revenue y Corredores Cross-Border</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-copilot-trigger" id="btnHeaderCopilot" title="Abrir Copiloto BI Autónomo Text-to-SQL">
+        <span class="ai-sparkle">✨</span>
+        <span>Copiloto BI AI</span>
+        <span class="badge-ai-mode">Text-to-SQL</span>
+      </button>
+      <button class="btn-secondary" id="btnResetFilters">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        Restablecer
+      </button>
+      <button class="btn-primary" id="btnPrint">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
+        Exportar Reporte / PDF
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Filters Toolbar -->
+    <section class="filter-card" id="filterSection">
+      <div class="filters-group">
+        <div class="filter-item">
+          <label for="filterProduct">Producto</label>
+          <select id="filterProduct" class="filter-select">
+            <option value="ALL">Todos los Productos</option>
+            <option value="Remesa">Remesa</option>
+            <option value="Exchange">Exchange</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="P2P">P2P</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filterOrigin">País Origen</label>
+          <select id="filterOrigin" class="filter-select">
+            <option value="ALL">Todos los Países</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Chile">Chile</option>
+            <option value="Colombia">Colombia</option>
+            <option value="México">México</option>
+            <option value="Perú">Perú</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filterDestiny">País Destino</label>
+          <select id="filterDestiny" class="filter-select">
+            <option value="ALL">Todos los Destinos</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Chile">Chile</option>
+            <option value="Colombia">Colombia</option>
+            <option value="México">México</option>
+            <option value="Perú">Perú</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filterYear">Año / Periodo</label>
+          <select id="filterYear" class="filter-select">
+            <option value="ALL">Todo el Histórico</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-status">
+        <span class="status-dot"></span>
+        <span id="filteredCountLabel">Mostrando 5,000 transacciones auditadas</span>
+      </div>
+    </section>
+
+    <!-- KPI Scorecards Grid -->
+    <section class="kpi-grid">
+      <!-- 1. Volumen Total -->
+      <div class="kpi-card" id="kpiVolCard">
+        <div class="kpi-header">
+          <span class="kpi-title">Volumen Total Enviado</span>
+          <span class="kpi-pill">USD</span>
+        </div>
+        <div class="kpi-value" id="kpiVolume">$12,650,674</div>
+        <div class="kpi-subtitle">Normalizado en USD consolidado</div>
+      </div>
+
+      <!-- 2. Gross Revenue -->
+      <div class="kpi-card kpi-success" id="kpiRevCard">
+        <div class="kpi-header">
+          <span class="kpi-title">Gross Revenue Total</span>
+          <span class="kpi-pill success">100% Margen Positivo</span>
+        </div>
+        <div class="kpi-value" id="kpiRevenue">$1,282,365</div>
+        <div class="kpi-subtitle">Ticket prom. revenue: <strong id="kpiAvgRev">$256.47</strong></div>
+      </div>
+
+      <!-- 3. Take Rate -->
+      <div class="kpi-card kpi-purple" id="kpiTakeCard">
+        <div class="kpi-header">
+          <span class="kpi-title">Take Rate Promedio</span>
+          <span class="kpi-pill purple">KPI Clave</span>
+        </div>
+        <div class="kpi-value" id="kpiTakeRate">10.14%</div>
+        <div class="kpi-subtitle">Revenue / Volumen Enviado</div>
+      </div>
+
+      <!-- 4. Total Transacciones -->
+      <div class="kpi-card" id="kpiTxnCard">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Transacciones</span>
+          <span class="kpi-pill">Operaciones</span>
+        </div>
+        <div class="kpi-value" id="kpiTxns">5,000</div>
+        <div class="kpi-subtitle" id="kpiTxnSub">Ticket prom: $2,530.13 USD</div>
+      </div>
+
+      <!-- 5. Clientes Únicos -->
+      <div class="kpi-card" id="kpiCustCard">
+        <div class="kpi-header">
+          <span class="kpi-title">Clientes Activos</span>
+          <span class="kpi-pill">Transaccionaron</span>
+        </div>
+        <div class="kpi-value" id="kpiCustomers">989</div>
+        <div class="kpi-subtitle">De 1,000 usuarios registrados</div>
+      </div>
+
+      <!-- 6. Transacciones Positivas -->
+      <div class="kpi-card kpi-warning" id="kpiPosCard">
+        <div class="kpi-header">
+          <span class="kpi-title">Txns Revenue &gt; 0</span>
+          <span class="kpi-pill">Responde Q6</span>
+        </div>
+        <div class="kpi-value" id="kpiPositiveTxns">5,000 <small
+            style="font-size:1rem;color:var(--success)">(100%)</small></div>
+        <div class="kpi-subtitle">Margen bruto positivo total</div>
+      </div>
+    </section>
+
+    <!-- Visual Charts: Product & Timeline -->
+    <section class="charts-grid-2">
+      <!-- Chart 1: Transacciones y Volumen por Producto -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3>Transacciones y Volumen por Producto</h3>
+            <p>Distribución de operaciones y volumen consolidado USD</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartProduct"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Evolución Mensual de Revenue y Volumen -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3>Evolución Mensual (Revenue &amp; Volumen)</h3>
+            <p>Tendencia temporal y estacionalidad del Neobanco</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartTimeline"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Charts: Destinos & Corredores -->
+    <section class="charts-grid-2">
+      <!-- Chart 3: Top Países que Recibieron más Transacciones -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3>Top Países Receptores de Transacciones</h3>
+            <p>Ranking de países destino por cantidad de operaciones</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartDestinyCountries"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 4: Top Corredores Cross-Border -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3>Top Corredores Cross-Border (Origen ➔ Destino)</h3>
+            <p>Rutas con mayor tráfico transaccional y flujo de fondos</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartCorridors"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep Dive Data Tables -->
+    <section class="card" id="deepDiveSection">
+      <div class="card-header" style="margin-bottom: 8px;">
+        <div class="card-title-group">
+          <h3>Explotación Detallada de Datos &amp; Auditoría Transaccional</h3>
+          <p>Tablas dinámicas ordenables y filtrables para auditoría y toma de decisiones</p>
+        </div>
+      </div>
+
+      <!-- Tabs Header -->
+      <div class="tabs-header">
+        <button class="tab-btn highlight-tab" data-tab="tabCopilot"><span class="tab-icon">🤖</span> Copiloto BI AI
+          (Text-to-SQL)</button>
+        <button class="tab-btn active" data-tab="tabTopRevenue">Top Clientes por Revenue</button>
+        <button class="tab-btn" data-tab="tabTopProduct">Top 3 Clientes por Producto</button>
+        <button class="tab-btn" data-tab="tabFirstTxn">Primera Transacción por Cliente</button>
+        <button class="tab-btn" data-tab="tabRawTxns">Explorador Transaccional (5,000 Txns)</button>
+      </div>
+
+      <!-- Tab Copiloto BI Autónomo Text-to-SQL -->
+      <div class="tab-content" id="tabCopilot">
+        <div class="copilot-studio">
+
+          <!-- Banner Superior del Copiloto -->
+          <div class="copilot-banner">
+            <div class="copilot-banner-info">
+              <h2><span class="ai-sparkle">✨</span> Copiloto BI Autónomo Neobank <span
+                  class="copilot-status-pill"><span class="copilot-status-dot"></span> <span
+                    id="copilotStatusText">Motor Activo &bull; SQLite Read-Only</span></span></h2>
+              <p>Haz cualquier pregunta en lenguaje natural sobre las 5,000 transacciones, clientes, productos y
+                corredores del Neobanco. La IA aplica reglas financieras estrictas (normalización multimoneda en USD,
+                take rate exacto y protección contable) para generar consultas SQL ANSI seguras con auto-corrección.</p>
+            </div>
+            <div class="copilot-banner-actions">
+              <button class="btn-ghost-light" id="btnOpenSettings">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                Configurar IA
+              </button>
+              <button class="btn-ghost-light" id="btnClearChatHistory">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Limpiar Chat
+              </button>
+            </div>
+          </div>
+
+          <!-- Sugerencias de Preguntas de Negocio -->
+          <div class="quick-prompts-section">
+            <span class="quick-prompts-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              Preguntas de Negocio Listas para Probar (Haz Clic):
+            </span>
+            <div class="prompt-chips-grid">
+              <button class="prompt-chip" data-query="Hazme un resumen ejecutivo del último mes"
+                style="border-color:#7C3AED; background:rgba(124,58,237,0.06); color:#6D28D9;">
+                <span class="chip-tag" style="background:#7C3AED; color:#FFF;">Briefing</span> 📋 Resumen Ejecutivo del
+                Último Mes
+              </button>
+              <button class="prompt-chip" data-query="¿Qué cliente es el que más revenue generó?">
+                <span class="chip-tag">VIP</span> 👑 Cliente con más revenue
+              </button>
+              <button class="prompt-chip" data-query="Cantidad de transacciones y volumen por producto">
+                <span class="chip-tag">Mix</span> 📦 Transacciones por producto
+              </button>
+              <button class="prompt-chip" data-query="Top 10 de países que recibieron más transacciones">
+                <span class="chip-tag">Destinos</span> 🌎 Top 10 países destino
+              </button>
+              <button class="prompt-chip" data-query="Cantidad de dinero que envió cada cliente">
+                <span class="chip-tag">Volumen</span> 💵 Dinero enviado por cliente
+              </button>
+              <button class="prompt-chip" data-query="Top 3 de clientes que más transacciones realizaron por producto">
+                <span class="chip-tag">Top Clientes</span> 🏆 Top 3 clientes por producto
+              </button>
+              <button class="prompt-chip" data-query="Obtener la primera transacción de cada cliente">
+                <span class="chip-tag">Cohortes</span> 🚀 Primera transacción (Cohortes)
+              </button>
+              <button class="prompt-chip" data-query="Cantidad de transacciones con revenue positivo">
+                <span class="chip-tag">Margen</span> 📈 Transacciones con revenue positivo
+              </button>
+              <button class="prompt-chip" data-query="¿Cuáles son los corredores cross-border con mayor volumen?">
+                <span class="chip-tag">Corredores</span> 🌐 Rutas con más volumen USD
+              </button>
+              <button class="prompt-chip" data-query="¿Cuál es el volumen total de descuentos y su impacto en revenue?">
+                <span class="chip-tag">Fintech</span> 🎟️ Descuentos vs Revenue
+              </button>
+              <button class="prompt-chip" data-query="¿Cuántos clientes registrados aún no tienen ninguna transacción?">
+                <span class="chip-tag">Growth</span> 💤 Clientes inactivos
+              </button>
+              <button class="prompt-chip" data-query="Evolución mensual de volumen, revenue y take rate">
+                <span class="chip-tag">Tendencia</span> 📊 Evolución mensual
+              </button>
+            </div>
+          </div>
+
+          <!-- Contenedor del Chat y Resultados -->
+          <div class="copilot-chat-box">
+            <div class="chat-messages-container" id="chatMessages">
+              <!-- Mensaje de bienvenida inicial -->
+              <div class="chat-row assistant-row">
+                <div class="avatar-icon avatar-ai">✨</div>
+                <div class="msg-content-wrapper">
+                  <div class="ai-cards-stack">
+                    <div class="ai-summary-box">
+                      <strong>¡Hola! Soy tu Copiloto BI Autónomo Text-to-SQL del Neobanco.</strong><br>
+                      Estoy programado con la capa semántica financiera del Neobanco. Puedes hacerme preguntas en
+                      lenguaje natural sobre:
+                      <ul style="margin: 8px 0 0 18px; line-height: 1.6;">
+                        <li><strong>Volumen y Take Rate:</strong> agregaciones normalizadas en USD para evitar sumar
+                          monedas locales heterogéneas.</li>
+                        <li><strong>Productos &amp; Corredores:</strong> análisis de Remesas, Tarjeta, Exchange y P2P
+                          entre Chile, Argentina, Colombia, México y Perú.</li>
+                        <li><strong>Clientes y Beneficiarios:</strong> rankings de revenue, cohortes de primera
+                          transacción y usuarios inactivos.</li>
+                      </ul>
+                      Elige una sugerencia arriba o escribe cualquier consulta abajo.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barra de Entrada de Preguntas -->
+            <div class="copilot-input-area">
+              <div class="input-controls-row">
+                <input type="text" id="copilotInput" class="copilot-text-input"
+                  placeholder="Pregunta en lenguaje natural (ej: ¿Cuáles son los 5 clientes que más dinero enviaron en USD?)..."
+                  autocomplete="off">
+                <button class="btn-send-chat" id="btnSendChat" title="Enviar consulta">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </button>
+              </div>
+              <div class="input-hints-row">
+                <span>💡 <strong>Tip:</strong> Puedes presionar <code>Enter</code> para consultar. Las consultas se
+                  ejecutan en modo Read-Only.</span>
+                <span id="backendBadge">🟢 SQLite Read-Only</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tab 1: Top Clientes por Revenue -->
+      <div class="tab-content active" id="tabTopRevenue">
+        <div class="table-toolbar">
+          <input type="text" id="searchTopClients" class="search-input"
+            placeholder="Buscar cliente por nombre o país...">
+          <div class="table-caption" style="font-size:0.85rem;color:var(--text-muted)">
+            <strong style="color:var(--primary)">★ Top 1 Absoluto:</strong> John Peterson (#581) con <strong>$4,620.06
+              USD</strong> en revenue.
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="styled-table" id="tableTopRevenue">
+            <thead>
+              <tr>
+                <th class="text-center">Rank</th>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>País Cliente</th>
+                <th class="text-right">Transacciones</th>
+                <th class="text-right">Dinero Enviado (USD)</th>
+                <th class="text-right">Revenue Generado (USD)</th>
+                <th class="text-right">Take Rate %</th>
+                <th class="text-right">Ticket Promedio</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTopRevenue">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Top 3 Clientes por Producto -->
+      <div class="tab-content" id="tabTopProduct">
+        <div class="table-toolbar">
+          <div style="font-size:0.85rem;color:var(--text-muted)">
+            Se utiliza ordenamiento por número de transacciones y desempate por volumen USD acumulado.
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="styled-table" id="tableTopProduct">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="text-center">Posición (Rank)</th>
+                <th>Cliente ID</th>
+                <th>Nombre del Cliente</th>
+                <th>País</th>
+                <th class="text-right">Transacciones Realizadas</th>
+                <th class="text-right">Volumen Total Operado (USD)</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTopProduct">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: Primera Transacción por Cliente -->
+      <div class="tab-content" id="tabFirstTxn">
+        <div class="table-toolbar">
+          <input type="text" id="searchFirstTxn" class="search-input" placeholder="Buscar por cliente o producto...">
+          <div class="pagination-controls">
+            <button class="page-btn" id="btnPrevFirstTxn">Anterior</button>
+            <span id="pageInfoFirstTxn">Página 1</span>
+            <button class="page-btn" id="btnNextFirstTxn">Siguiente</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="styled-table" id="tableFirstTxn">
+            <thead>
+              <tr>
+                <th>Cliente ID</th>
+                <th>Txn ID</th>
+                <th>Fecha 1ra Transacción</th>
+                <th>Producto de Entrada</th>
+                <th class="text-right">Monto Inicial (USD)</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyFirstTxn">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 4: Explorador Transaccional Completo -->
+      <div class="tab-content" id="tabRawTxns">
+        <div class="table-toolbar">
+          <input type="text" id="searchRawTxns" class="search-input" placeholder="Buscar transacción, cliente, país...">
+          <div class="pagination-controls">
+            <button class="page-btn" id="btnPrevTxns">Anterior</button>
+            <span id="pageInfoTxns">Página 1 de 100</span>
+            <button class="page-btn" id="btnNextTxns">Siguiente</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="styled-table" id="tableRawTxns">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Cliente</th>
+                <th>Corredor</th>
+                <th class="text-right">Monto USD</th>
+                <th class="text-right">Revenue USD</th>
+                <th class="text-right">Descuento USD</th>
+                <th class="text-right">Net Revenue USD</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRawTxns">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div>
+        <strong>Neobanco Global</strong> &bull; Executive Analytics &amp; Autonomous BI Copilot
+      </div>
+      <div>
+        Dataset: 5,000 Transacciones auditadas &bull; Multi-moneda normalizada en USD
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Botón Flotante para Acceso Rápido al Copiloto -->
+  <button class="floating-copilot-btn" id="floatingCopilotBtn" title="Abrir Copiloto BI AI">
+    <span class="ai-sparkle">✨</span>
+    <span>Copiloto BI AI</span>
+  </button>
+
+  <!-- Modal de Configuración de IA (Opcional para OpenAI / Gemini / Ollama) -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ Configuración del Copiloto BI AI</div>
+        <button class="btn-close-modal" id="btnCloseSettings">&times;</button>
+      </div>
+      <div class="modal-form-group">
+        <label for="aiProviderSelect">Proveedor de Inteligencia Artificial</label>
+        <select id="aiProviderSelect" class="modal-select">
+          <option value="internal">Motor Semántico Interno (Recomendado - 100% Preciso sin API Key)</option>
+          <option value="openai">OpenAI (GPT-4o-mini / GPT-4o)</option>
+          <option value="gemini">Google Gemini (Gemini 1.5 Flash)</option>
+        </select>
+        <p class="modal-help">El motor semántico interno del Neobanco ejecuta validación determinista, reglas financieras
+          estrictas y auto-corrección sin costo ni latencia externa.</p>
+      </div>
+      <div class="modal-form-group" id="apiKeyGroup" style="display:none;">
+        <label for="apiKeyInput">API Key del Proveedor Externo</label>
+        <input type="password" id="apiKeyInput" class="modal-input" placeholder="sk-... o AIzaSy...">
+        <p class="modal-help">Tu API Key se almacena localmente en tu navegador y nunca se comparte fuera de tus
+          consultas.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnCancelSettings">Cancelar</button>
+        <button class="btn-primary" id="btnSaveSettings">Guardar Configuración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data and Application Script -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="copilot.js"></script>
+</body>
+
+</html>

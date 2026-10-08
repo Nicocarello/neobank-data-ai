@@ -1,0 +1,79 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Secrets (Keys should never be pushed)
+.env
+.env.local
+.env.*.local
+*.env
+secrets.json
+*api_key*
+*.pem
+*.key
+
+# Editor & IDE settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files & Logs
+extracted_media/
+*.log
+*.tmp
+temp/
+scratch/
+.system_generated/
+
+# Antigravity & Agent workspace artifacts
+.agents/
+
+# Raw Challenge & Specific Named Files
+challenge-*.docx
+*.docx
+*.xlsx
+data/
+*global66*
+*GLOBAL66*
