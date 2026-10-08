@@ -583,6 +583,13 @@ DEBES RETORNAR UN OBJETO JSON ESTRICTO CON LA SIGUIENTE ESTRUCTURA:
   "summary": "Resumen ejecutivo en lenguaje natural explicando qué significa el resultado para el negocio"
 }}
 """
+        def _clean_json(text):
+            s = text.strip()
+            if s.startswith("```"):
+                s = re.sub(r"^```(?:json)?\s*", "", s, flags=re.IGNORECASE)
+                s = re.sub(r"\s*```$", "", s)
+            return s.strip()
+
         if provider == 'openai':
             headers = {
                 "Content-Type": "application/json",
@@ -600,33 +607,46 @@ DEBES RETORNAR UN OBJETO JSON ESTRICTO CON LA SIGUIENTE ESTRUCTURA:
             req = urllib.request.Request("https://api.openai.com/v1/chat/completions", 
                                          data=json.dumps(body).encode('utf-8'), 
                                          headers=headers)
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with urllib.request.urlopen(req, timeout=18) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
-                content = data['choices'][0]['message']['content']
+                content = _clean_json(data['choices'][0]['message']['content'])
                 parsed = json.loads(content)
-                return parsed['thought'], parsed['sql'], parsed['summary']
+                sql = parsed.get('sql') or parsed.get('query') or parsed.get('sql_query') or ''
+                thought = parsed.get('thought') or parsed.get('reasoning') or 'Capa Semántica Externa (OpenAI GPT-4o-mini).'
+                summary = parsed.get('summary') or parsed.get('response') or parsed.get('answer') or 'Consulta ejecutada exitosamente.'
+                return thought, sql, summary
 
         elif provider == 'gemini':
-            # Gemini REST API
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            body = {
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": f"{system_prompt}\n\nPREGUNTA DEL USUARIO:\n{prompt}"}
-                        ]
+            # Soporte multi-modelo para Google Gemini (1.5 Flash y 2.0 Flash)
+            models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+            last_err = None
+            for model_name in models:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                    body = {
+                        "contents": [
+                            {
+                                "parts": [
+                                    {"text": f"{system_prompt}\n\nPREGUNTA DEL USUARIO:\n{prompt}"}
+                                ]
+                            }
+                        ],
+                        "generationConfig": {
+                            "responseMimeType": "application/json"
+                        }
                     }
-                ],
-                "generationConfig": {
-                    "responseMimeType": "application/json"
-                }
-            }
-            req = urllib.request.Request(url, data=json.dumps(body).encode('utf-8'), headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                raw_text = data['candidates'][0]['content']['parts'][0]['text']
-                parsed = json.loads(raw_text)
-                return parsed['thought'], parsed['sql'], parsed['summary']
+                    req = urllib.request.Request(url, data=json.dumps(body).encode('utf-8'), headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=18) as resp:
+                        data = json.loads(resp.read().decode('utf-8'))
+                        raw_text = _clean_json(data['candidates'][0]['content']['parts'][0]['text'])
+                        parsed = json.loads(raw_text)
+                        sql = parsed.get('sql') or parsed.get('query') or parsed.get('sql_query') or ''
+                        thought = parsed.get('thought') or parsed.get('reasoning') or f'Capa Semántica Externa (Google {model_name}).'
+                        summary = parsed.get('summary') or parsed.get('response') or parsed.get('answer') or 'Consulta ejecutada exitosamente.'
+                        return thought, sql, summary
+                except Exception as ex:
+                    last_err = ex
+            raise last_err or ValueError("Error al conectar con la API de Google Gemini.")
 
         raise ValueError(f"Proveedor no soportado: {provider}")
 
@@ -635,6 +655,7 @@ DEBES RETORNAR UN OBJETO JSON ESTRICTO CON LA SIGUIENTE ESTRUCTURA:
         thought = ""
         sql = ""
         summary = ""
+        query_result = None
 
         # Auto-detect API key from environment if not explicitly passed
         if not api_key:
@@ -655,17 +676,19 @@ DEBES RETORNAR UN OBJETO JSON ESTRICTO CON LA SIGUIENTE ESTRUCTURA:
         if api_key and provider and provider != 'internal':
             try:
                 thought, sql, summary = self.call_external_llm(question, api_key, provider)
+                query_result = self.execute_query(sql)
             except Exception as e:
-                # Fallback al motor semántico interno
+                # Fallback al motor semántico interno con notificación amistosa
                 thought_fb, sql_fb, summary_fb = self.synthesize_semantic_sql(question)
-                thought = f"(Nota: Proveedor externo {provider} falló: {str(e)}. Usando Capa Semántica Interna). {thought_fb}"
+                provider_label = "OpenAI" if provider == 'openai' else ("Google Gemini" if provider == 'gemini' else provider)
+                err_clean = str(e).split(':')[-1].strip()[:100]
+                thought = f"🤖 [{provider_label} reportó: {err_clean}. Auto-resuelto con la Capa Semántica Interna]\n\n{thought_fb}"
                 sql = sql_fb
                 summary = summary_fb
+                query_result = self.execute_query(sql)
         else:
             thought, sql, summary = self.synthesize_semantic_sql(question)
-
-        # Ejecución contra SQLite
-        query_result = self.execute_query(sql)
+            query_result = self.execute_query(sql)
 
         # Formato dinámico y conciso para clientes inactivos
         if summary == "__INACTIVE_CLIENTS_SUMMARY__":

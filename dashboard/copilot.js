@@ -26,9 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeCharts = {};
   let isProcessing = false;
   let config = {
-    provider: localStorage.getItem('g66_ai_provider') || 'internal',
-    apiKey: localStorage.getItem('g66_ai_apikey') || ''
+    provider: localStorage.getItem('neobank_ai_provider') || localStorage.getItem('g66_ai_provider') || 'internal',
+    apiKey: localStorage.getItem('neobank_ai_apikey') || localStorage.getItem('g66_ai_apikey') || ''
   };
+
+  function updateProviderStatusBadge() {
+    if (!elCopilotStatusText) return;
+    if (config.provider === 'openai' && config.apiKey) {
+      elCopilotStatusText.innerHTML = 'Motor Activo &bull; OpenAI (GPT-4o-mini)';
+    } else if (config.provider === 'gemini' && config.apiKey) {
+      elCopilotStatusText.innerHTML = 'Motor Activo &bull; Google Gemini Flash';
+    } else {
+      elCopilotStatusText.innerHTML = 'Motor Activo &bull; SQLite Read-Only (Local)';
+    }
+  }
 
   // Determine API Base URL
   const isHttp = window.location.protocol.startsWith('http');
@@ -44,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (res.ok || res.status === 400) {
         if (elBackendBadge) elBackendBadge.innerHTML = '🟢 Servidor Python & SQLite Activo';
-        if (elCopilotStatusText) elCopilotStatusText.innerHTML = 'Motor Activo &bull; SQLite Read-Only (Local)';
+        updateProviderStatusBadge();
         return true;
       }
     } catch (e) {
@@ -55,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
   checkBackend();
+  updateProviderStatusBadge();
 
   // Navigation helpers to switch to Copilot tab
   function switchToCopilotTab() {
@@ -107,8 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     elBtnSaveSettings.addEventListener('click', () => {
       config.provider = elAiProviderSelect.value;
       config.apiKey = elApiKeyInput.value.trim();
-      localStorage.setItem('g66_ai_provider', config.provider);
-      localStorage.setItem('g66_ai_apikey', config.apiKey);
+      localStorage.setItem('neobank_ai_provider', config.provider);
+      localStorage.setItem('neobank_ai_apikey', config.apiKey);
+      updateProviderStatusBadge();
       closeSettings();
       appendToast('Configuración guardada correctamente.');
     });

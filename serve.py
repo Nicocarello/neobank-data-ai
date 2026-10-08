@@ -39,7 +39,7 @@ class NeobankServerHandler(http.server.SimpleHTTPRequestHandler):
         if parsed_url.path == '/api/chat':
             message = body.get('message', '').strip()
             api_key = body.get('apiKey', '').strip() or None
-            provider = body.get('provider', 'openai').strip()
+            provider = body.get('provider', 'internal').strip()
 
             if not message:
                 self.send_response(400)
