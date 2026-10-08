@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (config.provider === 'openai' && config.apiKey) {
       elCopilotStatusText.innerHTML = 'Motor Activo &bull; OpenAI (GPT-4o-mini)';
     } else if (config.provider === 'gemini' && config.apiKey) {
-      elCopilotStatusText.innerHTML = 'Motor Activo &bull; Google Gemini Flash';
+      elCopilotStatusText.innerHTML = 'Motor Activo &bull; Google Gemini (2.5 Flash Lite)';
     } else {
       elCopilotStatusText.innerHTML = 'Motor Activo &bull; SQLite Read-Only (Local)';
     }

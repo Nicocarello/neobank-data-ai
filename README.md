@@ -18,7 +18,7 @@ Plataforma ejecutiva de Business Intelligence y Copiloto de Inteligencia Artific
    - **Reglas Semánticas Fintech Estrictas:** Previene errores contables, bloquea inyecciones y mutaciones (`DROP`, `DELETE`, `UPDATE`) y ejecuta en modo seguro **SQLite Read-Only**.
    - **Gráficos Dinámicos de Series Temporales:** Renderizado automático con Chart.js con soporte **Dual Y-Axis** (volumen y revenue en escala USD a la izquierda, take rate % a la derecha).
    - **Informes Ejecutivos C-Level:** Genera diagnósticos de negocio detallados con un solo clic.
-   - **Conectores Opcionales de IA:** Soporte plug-and-play para conectar **OpenAI (GPT-4o)** o **Google Gemini (Gemini 1.5 Flash)** directamente desde el modal de configuración en la interfaz.
+   - **Conectores Opcionales de IA:** Soporte plug-and-play para conectar **OpenAI (GPT-4o-mini)** o **Google Gemini (Gemini 2.5 Flash Lite)** directamente desde el modal de configuración en la interfaz.
 
 3. **Explorador Transaccional & Auditoría**:
    - Tablas paginadas y filtrables en vivo con búsqueda instantánea.

@@ -617,8 +617,8 @@ DEBES RETORNAR UN OBJETO JSON ESTRICTO CON LA SIGUIENTE ESTRUCTURA:
                 return thought, sql, summary
 
         elif provider == 'gemini':
-            # Soporte multi-modelo para Google Gemini (1.5 Flash y 2.0 Flash)
-            models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+            # Soporte multi-modelo para Google Gemini (Prioridad: gemini-2.5-flash-lite)
+            models = ["gemini-2.5-flash-lite", "gemini-2.0-flash", "gemini-1.5-flash"]
             last_err = None
             for model_name in models:
                 try:
