@@ -70,10 +70,10 @@ scratch/
 # Antigravity & Agent workspace artifacts
 .agents/
 
-# Raw Challenge & Specific Named Files
+# Raw Challenge & Proprietary Files
 challenge-*.docx
 *.docx
 *.xlsx
 data/
-*global66*
-*GLOBAL66*
+legacy/
+backup/
