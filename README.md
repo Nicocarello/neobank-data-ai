@@ -138,6 +138,7 @@ neobank-data-ai/
 ├── neobank.db                      # Base de datos SQLite auditada (customer & transaction)
 ├── run_dashboard.bat               # Launcher de 1 clic para entornos Windows
 │
+├── eda_neobank_analytics.ipynb     # Jupyter Notebook interactivo con EDA, análisis y SQL
 ├── queries_analytics.sql           # Consultas SQL analíticas oficiales y optimizadas
 ├── verify_queries.py               # Script de verificación y validación de consultas
 ├── bi_analytic_dataset.csv         # Dataset analítico preparado para BI / Looker Studio
